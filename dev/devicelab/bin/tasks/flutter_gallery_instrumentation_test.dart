@@ -1,24 +1,24 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2014 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_devicelab/framework/adb.dart';
 import 'package:flutter_devicelab/framework/framework.dart';
+import 'package:flutter_devicelab/framework/task_result.dart';
 import 'package:flutter_devicelab/framework/utils.dart';
 
-// This test runs "//examples/flutter_gallery/test/live_smoketest.dart", which communicates
+// This test runs "//dev/integration_tests/flutter_gallery/test/live_smoketest.dart", which communicates
 // with the Java code to report its status. If this test fails due to a problem on the Dart
 // side, you can debug that by just running that file directly using `flutter run`.
 
-Future<Null> main() async {
+Future<void> main() async {
   deviceOperatingSystem = DeviceOperatingSystem.android;
 
   await task(() async {
     final Directory galleryDirectory =
-      dir('${flutterDirectory.path}/examples/flutter_gallery');
+      dir('${flutterDirectory.path}/dev/integration_tests/flutter_gallery');
     await inDirectory(galleryDirectory, () async {
       final Device device = await devices.workingDevice;
       await device.unlock();
@@ -30,6 +30,6 @@ Future<Null> main() async {
       });
     });
 
-    return new TaskResult.success(null);
+    return TaskResult.success(null);
   });
 }

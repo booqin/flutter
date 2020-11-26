@@ -1,4 +1,4 @@
-// Copyright 2015 The Chromium Authors. All rights reserved.
+// Copyright 2014 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -16,14 +16,14 @@ void main() {
         child: IconTheme(
           data: IconThemeData(
             color: Color(0xFF666666),
-            opacity: 0.5
+            opacity: 0.5,
           ),
-          child: Icon(IconData(0xd0a0, fontFamily: 'Arial'))
+          child: Icon(IconData(0xd0a0, fontFamily: 'Arial')),
         ),
       ),
     );
     final RichText text = tester.widget(find.byType(RichText));
-    expect(text.text.style.color, const Color(0xFF666666).withOpacity(0.5));
+    expect(text.text.style!.color, const Color(0xFF666666).withOpacity(0.5));
   });
 
   testWidgets('Icon sizing - no theme, default size', (WidgetTester tester) async {
@@ -87,7 +87,7 @@ void main() {
             ),
           ),
         ),
-      )
+      ),
     );
 
     final RenderBox renderObject = tester.renderObject(find.byType(Icon));
@@ -123,11 +123,11 @@ void main() {
     );
 
     final RichText richText = tester.firstWidget(find.byType(RichText));
-    expect(richText.text.style.fontFamily, equals('Roboto'));
+    expect(richText.text.style!.fontFamily, equals('Roboto'));
   });
 
   testWidgets('Icon with semantic label', (WidgetTester tester) async {
-    final SemanticsTester semantics = new SemanticsTester(tester);
+    final SemanticsTester semantics = SemanticsTester(tester);
 
     await tester.pumpWidget(
       const Directionality(
@@ -147,7 +147,7 @@ void main() {
   });
 
   testWidgets('Null icon with semantic label', (WidgetTester tester) async {
-    final SemanticsTester semantics = new SemanticsTester(tester);
+    final SemanticsTester semantics = SemanticsTester(tester);
 
     await tester.pumpWidget(
       const Directionality(
@@ -166,7 +166,7 @@ void main() {
     semantics.dispose();
   });
 
-  testWidgets('Changing semantic label from null doesn\'t rebuild tree ', (WidgetTester tester) async {
+  testWidgets("Changing semantic label from null doesn't rebuild tree ", (WidgetTester tester) async {
     await tester.pumpWidget(
       const Directionality(
         textDirection: TextDirection.ltr,

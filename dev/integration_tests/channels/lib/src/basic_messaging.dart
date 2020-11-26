@@ -1,4 +1,4 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2014 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -33,9 +33,9 @@ class ExtendedStandardMessageCodec extends StandardMessageCodec {
   dynamic readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
     case _dateTime:
-      return new DateTime.fromMillisecondsSinceEpoch(buffer.getInt64());
+      return DateTime.fromMillisecondsSinceEpoch(buffer.getInt64());
     case _pair:
-      return new Pair(readValue(buffer), readValue(buffer));
+      return Pair(readValue(buffer), readValue(buffer));
     default: return super.readValueOfType(type, buffer);
     }
   }

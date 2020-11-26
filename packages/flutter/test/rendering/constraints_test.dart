@@ -1,4 +1,4 @@
-// Copyright 2015 The Chromium Authors. All rights reserved.
+// Copyright 2014 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -10,17 +10,17 @@ import 'rendering_tester.dart';
 void main() {
   test('RenderFractionallySizedBox constraints', () {
     RenderBox root, leaf, test;
-    root = new RenderPositionedBox(
-      child: new RenderConstrainedBox(
-        additionalConstraints: new BoxConstraints.tight(const Size(200.0, 200.0)),
-        child: test = new RenderFractionallySizedOverflowBox(
+    root = RenderPositionedBox(
+      child: RenderConstrainedBox(
+        additionalConstraints: BoxConstraints.tight(const Size(200.0, 200.0)),
+        child: test = RenderFractionallySizedOverflowBox(
           widthFactor: 2.0,
           heightFactor: 0.5,
-          child: leaf = new RenderConstrainedBox(
+          child: leaf = RenderConstrainedBox(
             additionalConstraints: const BoxConstraints.expand()
-          )
-        )
-      )
+          ),
+        ),
+      ),
     );
     layout(root);
     expect(root.size.width, equals(800.0));

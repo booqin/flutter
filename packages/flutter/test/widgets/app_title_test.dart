@@ -1,4 +1,4 @@
-// Copyright 2017 The Chromium Authors. All rights reserved.
+// Copyright 2014 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -8,9 +8,9 @@ import 'package:flutter/widgets.dart';
 const Color kTitleColor = Color(0xFF333333);
 const String kTitleString = 'Hello World';
 
-Future<Null> pumpApp(WidgetTester tester, { GenerateAppTitle onGenerateTitle }) async {
+Future<void> pumpApp(WidgetTester tester, { GenerateAppTitle? onGenerateTitle }) async {
   await tester.pumpWidget(
-    new WidgetsApp(
+    WidgetsApp(
       supportedLocales: const <Locale>[
         Locale('en', 'US'),
         Locale('en', 'GB'),
@@ -19,9 +19,9 @@ Future<Null> pumpApp(WidgetTester tester, { GenerateAppTitle onGenerateTitle }) 
       color: kTitleColor,
       onGenerateTitle: onGenerateTitle,
       onGenerateRoute: (RouteSettings settings) {
-        return new PageRouteBuilder<void>(
+        return PageRouteBuilder<void>(
           pageBuilder: (BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-            return new Container();
+            return Container();
           }
         );
       },

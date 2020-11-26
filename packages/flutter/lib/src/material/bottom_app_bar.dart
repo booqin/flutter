@@ -1,4 +1,4 @@
-// Copyright 2018 The Chromium Authors. All rights reserved.
+// Copyright 2014 The Flutter Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
+import 'bottom_app_bar_theme.dart';
+import 'elevation_overlay.dart';
 import 'material.dart';
 import 'scaffold.dart';
 import 'theme.dart';
@@ -19,63 +21,82 @@ import 'theme.dart';
 ///
 /// Typically used with a [Scaffold] and a [FloatingActionButton].
 ///
-/// ## Sample code
-///
+/// {@tool snippet}
 /// ```dart
-/// new Scaffold(
-///   bottomNavigationBar: new BottomAppBar(
+/// Scaffold(
+///   bottomNavigationBar: BottomAppBar(
 ///     color: Colors.white,
 ///     child: bottomAppBarContents,
 ///   ),
-///   floatingActionButton: new FloatingActionButton(onPressed: null),
+///   floatingActionButton: FloatingActionButton(onPressed: null),
 /// )
 /// ```
+/// {@end-tool}
 ///
 /// See also:
 ///
-///  * [ComputeNotch] a function used for creating a notch in a shape.
-///  * [ScaffoldGeometry.floatingActionBarComputeNotch] the [ComputeNotch] used to
-///    make a notch for the [FloatingActionButton]
+///  * [NotchedShape] which calculates the notch for a notched [BottomAppBar].
 ///  * [FloatingActionButton] which the [BottomAppBar] makes a notch for.
 ///  * [AppBar] for a toolbar that is shown at the top of the screen.
 class BottomAppBar extends StatefulWidget {
   /// Creates a bottom application bar.
   ///
-  /// The [color] and [elevation] arguments must not be null.
+  /// The [clipBehavior] argument defaults to [Clip.none] and must not be null.
+  /// Additionally, [elevation] must be non-negative.
+  ///
+  /// If [color], [elevation], or [shape] are null, their [BottomAppBarTheme] values will be used.
+  /// If the corresponding [BottomAppBarTheme] property is null, then the default
+  /// specified in the property's documentation will be used.
   const BottomAppBar({
-    Key key,
+    Key? key,
     this.color,
-    this.elevation = 8.0,
+    this.elevation,
     this.shape,
+    this.clipBehavior = Clip.none,
     this.notchMargin = 4.0,
     this.child,
-  }) : assert(elevation != null),
-       assert(elevation >= 0.0),
+  }) : assert(elevation == null || elevation >= 0.0),
+       assert(notchMargin != null),
+       assert(clipBehavior != null),
        super(key: key);
 
   /// The widget below this widget in the tree.
   ///
-  /// {@macro flutter.widgets.child}
+  /// {@macro flutter.widgets.ProxyWidget.child}
   ///
   /// Typically this the child will be a [Row], with the first child
   /// being an [IconButton] with the [Icons.menu] icon.
-  final Widget child;
+  final Widget? child;
 
   /// The bottom app bar's background color.
   ///
-  /// When null defaults to [ThemeData.bottomAppBarColor].
-  final Color color;
+  /// If this property is null then [BottomAppBarTheme.color] of
+  /// [ThemeData.bottomAppBarTheme] is used. If that's null then
+  /// [ThemeData.bottomAppBarColor] is used.
+  final Color? color;
 
-  /// The z-coordinate at which to place this bottom app bar. This controls the
-  /// size of the shadow below the bottom app bar.
+  /// The z-coordinate at which to place this bottom app bar relative to its
+  /// parent.
   ///
-  /// Defaults to 8, the appropriate elevation for bottom app bars.
-  final double elevation;
+  /// This controls the size of the shadow below the bottom app bar. The
+  /// value is non-negative.
+  ///
+  /// If this property is null then [BottomAppBarTheme.elevation] of
+  /// [ThemeData.bottomAppBarTheme] is used. If that's null, the default value
+  /// is 8.
+  final double? elevation;
 
   /// The notch that is made for the floating action button.
   ///
-  /// If null the bottom app bar will be rectangular with no notch.
-  final NotchedShape shape;
+  /// If this property is null then [BottomAppBarTheme.shape] of
+  /// [ThemeData.bottomAppBarTheme] is used. If that's null then the shape will
+  /// be rectangular with no notch.
+  final NotchedShape? shape;
+
+  /// {@macro flutter.material.Material.clipBehavior}
+  ///
+  /// Defaults to [Clip.none], and must not be null.
+  final Clip clipBehavior;
 
   /// The margin between the [FloatingActionButton] and the [BottomAppBar]'s
   /// notch.
@@ -84,11 +105,12 @@ class BottomAppBar extends StatefulWidget {
   final double notchMargin;
 
   @override
-  State createState() => new _BottomAppBarState();
+  State createState() => _BottomAppBarState();
 }
 
 class _BottomAppBarState extends State<BottomAppBar> {
-  ValueListenable<ScaffoldGeometry> geometryListenable;
+  late ValueListenable<ScaffoldGeometry> geometryListenable;
+  static const double _defaultElevation = 8.0;
 
   @override
   void didChangeDependencies() {
@@ -98,22 +120,28 @@ class _BottomAppBarState extends State<BottomAppBar> {
 
   @override
   Widget build(BuildContext context) {
-    final CustomClipper<Path> clipper = widget.shape != null
-      ? new _BottomAppBarClipper(
+    final BottomAppBarTheme babTheme = BottomAppBarTheme.of(context);
+    final NotchedShape? notchedShape = widget.shape ?? babTheme.shape;
+    final CustomClipper<Path> clipper = notchedShape != null
+      ? _BottomAppBarClipper(
         geometry: geometryListenable,
-        shape: widget.shape,
+        shape: notchedShape,
         notchMargin: widget.notchMargin,
       )
       : const ShapeBorderClipper(shape: RoundedRectangleBorder());
-    return new PhysicalShape(
+    final double elevation = widget.elevation ?? babTheme.elevation ?? _defaultElevation;
+    final Color color = widget.color ?? babTheme.color ?? Theme.of(context).bottomAppBarColor;
+    final Color effectiveColor = ElevationOverlay.applyOverlay(context, color, elevation);
+    return PhysicalShape(
       clipper: clipper,
-      elevation: widget.elevation,
-      color: widget.color ?? Theme.of(context).bottomAppBarColor,
-      child: new Material(
+      elevation: elevation,
+      color: effectiveColor,
+      clipBehavior: widget.clipBehavior,
+      child: Material(
         type: MaterialType.transparency,
         child: widget.child == null
           ? null
-          : new SafeArea(child: widget.child),
+          : SafeArea(child: widget.child!),
       ),
     );
   }
@@ -121,9 +149,9 @@ class _BottomAppBarState extends State<BottomAppBar> {
 
 class _BottomAppBarClipper extends CustomClipper<Path> {
   const _BottomAppBarClipper({
-    @required this.geometry,
-    @required this.shape,
-    @required this.notchMargin,
+    required this.geometry,
+    required this.shape,
+    required this.notchMargin,
   }) : assert(geometry != null),
        assert(shape != null),
        assert(notchMargin != null),
@@ -135,19 +163,20 @@ class _BottomAppBarClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    final Rect appBar = Offset.zero & size;
-    if (geometry.value.floatingActionButtonArea == null) {
-      return new Path()..addRect(appBar);
-    }
-
     // button is the floating action button's bounding rectangle in the
-    // coordinate system that origins at the appBar's top left corner.
-    final Rect button = geometry.value.floatingActionButtonArea
-      .translate(0.0, geometry.value.bottomNavigationBarTop * -1.0);
-
-    return shape.getOuterPath(appBar, button.inflate(notchMargin));
+    // coordinate system whose origin is at the appBar's top left corner,
+    // or null if there is no floating action button.
+    final Rect? button = geometry.value.floatingActionButtonArea?.translate(
+      0.0,
+      geometry.value.bottomNavigationBarTop! * -1.0,
+    );
+    return shape.getOuterPath(Offset.zero & size, button?.inflate(notchMargin));
   }
 
   @override
-  bool shouldReclip(_BottomAppBarClipper oldClipper) => oldClipper.geometry != geometry;
+  bool shouldReclip(_BottomAppBarClipper oldClipper) {
+    return oldClipper.geometry != geometry
+        || oldClipper.shape != shape
+        || oldClipper.notchMargin != notchMargin;
+  }
 }
